@@ -1,17 +1,49 @@
 library(shiny)
 library(leaflet)
 library(lubridate)
-library(dplyr)
+#library(dplyr)
+library(shinythemes)
 
 crime_data <- readRDS("data/crime_data.Rds")
 
-ui <- fluidPage(
+ui <- fluidPage(#theme = shinytheme("cerulean"),
   includeCSS("style.css"),
   titlePanel("Cincinnati Crime Dashboard"),
+  div(class="tabset",
   tabsetPanel(
-      tabPanel("Analysis",
+    tabPanel("Map",
+             sidebarLayout(
+               sidebarPanel(
+                 h3("Crime Filters"),
+                 radioButtons("input_map_year",
+                              "Year",
+                              choices = c("All",sort(unique(year(crime_data$Occured.Date)))),
+                              selected = "All",inline = TRUE),
+                 sliderInput("input_map_CrimeHour",
+                             label = "Time Range (Hour of the day)", min = 0, 
+                             max = 23, value = c(0, 23)),
+                 selectInput("input_map_CrimeType",
+                             "Crime Type",
+                             choices = c("All",sort(unique(crime_data$Crime.Group))),
+                             selected = "All"),
+                 hr(),
+                 h3("Map Settings"),
+                 sliderInput("input_map_circleSize", label = "Marker Size", min = 1, 
+                             max = 10, value = 1),
+                 sliderInput("input_map_circleWt", label = "Marker Weight", min = 1, 
+                             max = 10, value = 2)
+               ),
+               mainPanel(
+                 renderText(output$test),
+                 leafletOutput("main_map",height = 600)
+               )
+             )
+             
+    ),
+    
+    tabPanel("Dashboard",
             sidebarLayout(
-                  sidebarPanel(
+                  sidebarPanel(#style = "position:fixed; overflow: visible",
                     h3("Crime Filters"),
                     sliderInput("input_analysis_CrimeHour",
                                 label = "Time Range (Hour of the day)", min = 0, 
@@ -21,52 +53,25 @@ ui <- fluidPage(
                                 choices = c("All",sort(unique(crime_data$Crime.Group))),
                                 selected = "All")
                     ),
-                  
                   mainPanel(
-                    plotOutput("yearly_graph",width = 400),
-                    plotOutput("monthly_graph",width = 1000),
-                    plotOutput("hourly_graph"),
-                    plotOutput("street_graph")
-                    
+                    fluidRow(
+                      splitLayout(cellWidths = c("29%", "70%"),
+                                  plotOutput("yearly_graph",height=300),
+                                  plotOutput("monthly_graph",height=300))
+                    ),
+                    plotOutput("hourly_graph",height=300),
+                    plotOutput("street_graph",height=300),
+                    div(class="error",("*Error in the above graph: Selected crime did not occur on any street across all three years")),
+                    hr(),
+                    div(class="table_header",("Streets list with increase/decrease in crime rates")),
+                    dataTableOutput("street_list")
                   )
             )
     ),
-    tabPanel("Map",
-             sidebarLayout(
-                  sidebarPanel(
-                    h3("Crime Filters"),
-                    radioButtons("input_map_year",
-                                 "Year",
-                                 choices = c("All",sort(unique(year(crime_data$Occured.Date)))),
-                                 selected = "All",inline = TRUE),
-                    radioButtons("input_map_CrimeTime", 
-                                 "Time of the day",
-                                 choices = c("All",sort(unique(crime_data$Occured.Time2))),
-                                 selected = "All",inline = TRUE),
-                    sliderInput("input_map_CrimeHour",
-                                label = "Time Range (Hour of the day)", min = min(crime_data$crimeOccHour), 
-                                max = max(crime_data$crimeOccHour), value = c(0, 23)),
-                    selectInput("input_map_CrimeType",
-                                "Crime Type",
-                                choices = c("All",sort(unique(crime_data$Crime.Group))),
-                                selected = "All"),
-                    hr(),
-                    h3("Map Settings"),
-                    sliderInput("input_map_circleSize", label = "Marker Size", min = 1, 
-                                max = 5, value = 1),
-                    sliderInput("input_map_circleWt", label = "Marker Weight", min = 1, 
-                                max = 5, value = 2)
-                  ),
-                  mainPanel(
-                    renderText(output$test),
-                    leafletOutput("main_map",height = 600),
-                    "*Stratified subset of data being shown on the map to increase application performance"
-                  )
-             )
-      
-    ),
-    tabPanel("Data Preparation"
+    tabPanel("Data Treatment Steps",
+             h4("This section coming up shortly.")
       
     )
-  )
+  )),
+  div(class="footer",("Project by Yash Sharma (yash91sharma@gmail.com)"))
 )

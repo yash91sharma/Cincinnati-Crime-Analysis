@@ -5,5 +5,31 @@ h2{
 	text-shadow: 2px 2px 2px #dddddd;
 }
 body {
-  background-color: #ffffff;
+	background-color: #ffffff;
+	width: 90%;
+	margin-left: 5%;
+	margin-right: 5%;
+	font-family: Calibri, sans-serif;
+}
+.footer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  background-color: #edeff2;
+  text-align: left;
+  color: #7f8184;
+  font-size: 12px;
+}
+.tabset{
+	margin-bottom: 100px;
+}
+.error{
+	color: #adadad;
+	font-size: 12px;
+}
+.table_header{
+  font-size: 18pt;
+  font-weight:bold;
 }
