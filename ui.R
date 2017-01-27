@@ -9,12 +9,13 @@ crime_data <- readRDS("data/crime_data.Rds")
 ui <- fluidPage(#theme = shinytheme("cerulean"),
   includeCSS("style.css"),
   titlePanel("Cincinnati Crime Dashboard"),
+  hr(),
   div(class="tabset",
   tabsetPanel(
     tabPanel("Map",
              sidebarLayout(
                sidebarPanel(
-                 h3("Crime Filters"),
+                 h3("Data Filters"),
                  radioButtons("input_map_year",
                               "Year",
                               choices = c("All",sort(unique(year(crime_data$Occured.Date)))),
@@ -44,7 +45,7 @@ ui <- fluidPage(#theme = shinytheme("cerulean"),
     tabPanel("Dashboard",
             sidebarLayout(
                   sidebarPanel(#style = "position:fixed; overflow: visible",
-                    h3("Crime Filters"),
+                    h3("Data Filters"),
                     sliderInput("input_analysis_CrimeHour",
                                 label = "Time Range (Hour of the day)", min = 0, 
                                 max = 23, value = c(0, 23)),
@@ -68,9 +69,17 @@ ui <- fluidPage(#theme = shinytheme("cerulean"),
                   )
             )
     ),
-    tabPanel("Data Treatment Steps",
-             h4("This section coming up shortly.")
-      
+    tabPanel("Data Source",
+             p(" "),
+             p("The data used for this project was publicly available at the location:
+               https://data.cincinnati-oh.gov/Safer-Streets/Police-Crime-Incident-Data/."),
+             hr(),
+             p("This is the reported crimes data, which are collated by an agency for management and uploded. This
+               data had serveral years worth of records. But for simplicity purposes, I filtered records only for
+               2013, 2014 and 2015."),
+             hr(),
+             p("The GGMAP package was used to query the latitude and longitude of the crime address from Google Maps."),
+             hr()
     )
   )),
   div(class="footer",("Project by Yash Sharma (yash91sharma@gmail.com)"))
