@@ -1,3 +1,7 @@
+
+#############################################################################
+#Call all the required libraries
+#############################################################################
 library(shiny)
 library(ggplot2)
 library(leaflet)
@@ -5,14 +9,22 @@ library(lubridate)
 library(dplyr)
 library(tidyr)
 
+#############################################################################
+#Read the data (data has been downloaded, cleaned and saved in the "data" folder)
+#############################################################################
 crime_data <- readRDS("data/crime_data.Rds")
 
+
+#############################################################################
+#The server function
+#############################################################################
 server <- function(input,output)
-{
+{ 
+  #Define the initial size of the markers on the map, can be changed dynamically
   map_circle_radius = 1
   map_circle_weight = 2
   
-  #main map
+  #main map initialization using the leaflet package
   output$main_map <- renderLeaflet({ 
     leaflet() %>% 
     addTiles() %>% 
@@ -24,6 +36,7 @@ server <- function(input,output)
                      radius=map_circle_radius)
   })
 
+  #Event observer: Watch for any user input and render the map accordingly
   observeEvent({input$input_map_year
                 input$input_map_CrimeType
                 input$input_map_circleSize
@@ -63,7 +76,7 @@ server <- function(input,output)
     }
   )
   
-  #yearly crimes graph
+  #barc chart for yearly number of crimes (changes according to user input)
   output$yearly_graph <- renderPlot({
     
     var_crimeType <- input$input_analysis_CrimeType
@@ -122,6 +135,7 @@ server <- function(input,output)
     
   })
   
+  #plot the number of crimes by hour (to show crimes during the day)
   output$hourly_graph <- renderPlot({
     
     var_crimeType <- input$input_analysis_CrimeType
@@ -147,6 +161,7 @@ server <- function(input,output)
       theme(plot.title = element_text(size = 18,face="bold"))
   })
   
+  #Plot the number of streets with increasing/decresing crimes
   output$street_graph <- renderPlot({
     var_crimeType <- input$input_analysis_CrimeType
     if(var_crimeType == "All")
@@ -189,42 +204,7 @@ server <- function(input,output)
     
   })
   
-  output$street_table <- renderDataTable(
-    {
-      var_crimeType <- input$input_analysis_CrimeType
-      if(var_crimeType == "All")
-      { var_crimeType <- unique(crime_data$Crime.Group)}
-      
-      var_crimeHour_min <- input$input_analysis_CrimeHour[1]
-      var_crimeHour_max <- input$input_analysis_CrimeHour[2]
-      
-      crime_data_subset <- filter(crime_data,
-                                  (Crime.Group %in% var_crimeType) &
-                                    (var_crimeHour_max >= crimeOccHour) & (var_crimeHour_min <= crimeOccHour)
-      )
-      
-      street_data <- crime_data_subset %>%
-        mutate(Street.Name = toupper(Street.Name)) %>%
-        group_by(Street.Name,year(crime_data_subset$Occured.Date)) %>%
-        summarise(count = n())
-      
-      colnames(street_data)[2] <- "year"
-      street_data <- spread(street_data,year,count)
-      street_data <- street_data[complete.cases(street_data),]
-      street_data <- mutate(street_data,
-                            Street.Type = ifelse( (`2015` < `2014`) & (`2014` < `2013`),"DECREASE",
-                                                  ifelse((`2015` > `2014`) & (`2014` > `2013`),"INCREASE",
-                                                         ifelse((`2015` == `2014`) & (`2014` == `2013`),"CONSTANT",
-                                                                ifelse((`2015` < `2014`) & (`2014` == `2013`),"DECREASE",
-                                                                       ifelse((`2015` == `2014`) & (`2014` < `2013`),"DECREASE",
-                                                                              ifelse((`2015` > `2014`) & (`2014` == `2013`),"INCREASE",
-                                                                                     ifelse((`2015` == `2014`) & (`2014` > `2013`),"INCREASE","OTHER"
-                                                                                     ))))))))
-      
-      
-      
-    }
-  )
+  #Render the table with the list of streets which have increasing/decresing crimes
   output$street_list <- renderDataTable(
     {
       var_crimeType <- input$input_analysis_CrimeType
